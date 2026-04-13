@@ -31,13 +31,19 @@ Euler-Bernoulli 解析解: δ = PL³/(3EI) = **2.9762 mm**
 | quad8 (Serendipity 2次) | −2.9764 | **100.0%** | ✓ 高精度 |
 | OpenSees elasticBeamColumn | −2.9762 | **100.0%** | ✓ 梁理論基準 |
 | OpenSees quad (PlaneStrain) | −0.7221 | **24.3%** | ⚠⚠ ロッキング (quad4 同等) |
+| **OpenSees SSPquad** | **−3.0673** | **103.1%** | ✓ 安定化1点積分 (ロッキング解消) |
 | Kratos SmallDisplacement2D4N | −0.7221 | **24.3%** | ⚠⚠ ロッキング (quad4 同等) |
+| **Kratos SmallDisplacement2D8N** | **−2.9763** | **100.0%** | ✓ Q8 Serendipity (高精度) |
 | Euler-Bernoulli 解析解 | −2.9762 | **100.0%** | 理論値 |
 | Timoshenko (κ=5/6) | −2.9782 | 100.1% | せん断変形含む |
 | Heki 日置解 (κ=1.0) | −2.9786 | 100.1% | 2D 弾性体厳密解 |
 
-> OpenSees quad と Kratos quad が SIMPLEFEM quad4 と同一値 (−0.7221) を示す:  
-> **3 つの全く異なるコードが同じ bilinear quad4 技術を使っているため、実装を相互に検証**
+> **相互検証ポイント:**
+> - `OpenSees quad` = `Kratos quad4` = `SIMPLEFEM quad4` → 同一値 −0.7221 (24.3%)  
+>   → 3 つの全く異なるコードが同じ bilinear quad4 実装を内部検証
+> - `OpenSees SSPquad` (103.1%) vs `SIMPLEFEM quad4 SRI` (99.8%):  
+>   どちらも 1 点積分系だがホワイトグラス安定化の有無で若干の差
+> - `Kratos Q8` = `SIMPLEFEM quad8` → 同一値 100.0% (Serendipity Q8 相互検証)
 
 ---
 
@@ -135,9 +141,17 @@ python main.py column 2
 ### バトル全比較 (SIMPLEFEM + OpenSees + Kratos)
 
 ```bash
-python battle/battle_extended.py   # 全ソルバー比較 + CSV + PNG
+python battle/battle_extended.py   # 全11ソルバー比較 + CSV + PNG
 python battle/battle.py            # 旧バージョン (Docker 直接)
 ```
+
+| ファイル | 内容 |
+|---------|------|
+| `battle/opensees/beam.py` | elasticBeamColumn (梁理論) |
+| `battle/opensees/quad.py` | quad PlaneStrain (ロッキングあり) |
+| `battle/opensees/quad_ssp.py` | **SSPquad** 安定化1点積分 (ロッキングなし) |
+| `battle/kratos/MainKratos.py` | SmallDisplacement2D4N (ロッキングあり) |
+| `battle/kratos/MainKratos_q8.py` | **SmallDisplacement2D8N** Q8 (ロッキングなし) |
 
 ---
 
