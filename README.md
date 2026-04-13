@@ -32,6 +32,8 @@ Euler-Bernoulli 解析解: δ = PL³/(3EI) = **2.9762 mm**
 | OpenSees elasticBeamColumn | −2.9762 | **100.0%** | ✓ 梁理論基準 |
 | OpenSees quad (PlaneStrain) | −0.7221 | **24.3%** | ⚠⚠ ロッキング (quad4 同等) |
 | **OpenSees SSPquad** | **−3.0673** | **103.1%** | ✓ 安定化1点積分 (ロッキング解消) |
+| **OpenSees enhancedQuad** | **−2.9715** | **99.8%** | ✓ EAS/Wilson Q6 相当 (高精度) |
+| **OpenSees quad9n** | **−2.9764** | **100.0%** | ✓ 9節点 Lagrange 2次 (最高精度) |
 | Kratos SmallDisplacement2D4N | −0.7221 | **24.3%** | ⚠⚠ ロッキング (quad4 同等) |
 | **Kratos SmallDisplacement2D8N** | **−2.9763** | **100.0%** | ✓ Q8 Serendipity (高精度) |
 | Euler-Bernoulli 解析解 | −2.9762 | **100.0%** | 理論値 |
@@ -43,6 +45,9 @@ Euler-Bernoulli 解析解: δ = PL³/(3EI) = **2.9762 mm**
 >   → 3 つの全く異なるコードが同じ bilinear quad4 実装を内部検証
 > - `OpenSees SSPquad` (103.1%) vs `SIMPLEFEM quad4 SRI` (99.8%):  
 >   どちらも 1 点積分系だがホワイトグラス安定化の有無で若干の差
+> - `OpenSees enhancedQuad` (99.8%) = `SIMPLEFEM quad4 SRI/IM` (99.8%):  
+>   EAS (Simo & Rifai 1990) ≡ 非適合モード (Wilson 1973) が同一精度を示す
+> - `OpenSees quad9n` (100.0%) = `Kratos Q8` = `SIMPLEFEM quad8` → 2次要素の相互検証
 > - `Kratos Q8` = `SIMPLEFEM quad8` → 同一値 100.0% (Serendipity Q8 相互検証)
 
 ---
@@ -150,6 +155,8 @@ python battle/battle.py            # 旧バージョン (Docker 直接)
 | `battle/opensees/beam.py` | elasticBeamColumn (梁理論) |
 | `battle/opensees/quad.py` | quad PlaneStrain (ロッキングあり) |
 | `battle/opensees/quad_ssp.py` | **SSPquad** 安定化1点積分 (ロッキングなし) |
+| `battle/opensees/quad_enhanced.py` | **enhancedQuad** EAS/Wilson Q6 相当 (99.8%) |
+| `battle/opensees/quad9n.py` | **quad9n** 9節点 Lagrange 2次 (100.0%) |
 | `battle/kratos/MainKratos.py` | SmallDisplacement2D4N (ロッキングあり) |
 | `battle/kratos/MainKratos_q8.py` | **SmallDisplacement2D8N** Q8 (ロッキングなし) |
 

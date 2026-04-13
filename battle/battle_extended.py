@@ -151,6 +151,28 @@ if uy_kr_q8 is not None:
     results['Kratos Q8'] = dict(uy=uy_kr_q8,
                                 ratio=abs(uy_kr_q8)/DELTA_EB*100, elapsed=dt)
 
+# OpenSees enhancedQuad (EAS / Wilson Q6 相当, ロッキングなし)
+r, dt = run_docker([
+    'docker', 'run', '--rm',
+    '-v', f'{OPSEE}:/work/work',
+    'solver-opensees:3.7.0', 'quad_enhanced.py',
+], 'OpenSees enhancedQuad')
+uy_os_enh = parse_single(os.path.join(OPSEE, 'results', 'quad_enhanced_uy.txt'))
+if uy_os_enh is not None:
+    results['OpenSees enhancedQuad'] = dict(uy=uy_os_enh,
+                                            ratio=abs(uy_os_enh)/DELTA_EB*100, elapsed=dt)
+
+# OpenSees quad9n (9節点 Lagrange, 3×3 Gauss, ロッキングなし)
+r, dt = run_docker([
+    'docker', 'run', '--rm',
+    '-v', f'{OPSEE}:/work/work',
+    'solver-opensees:3.7.0', 'quad9n.py',
+], 'OpenSees quad9n')
+uy_os_q9 = parse_single(os.path.join(OPSEE, 'results', 'quad9n_uy.txt'))
+if uy_os_q9 is not None:
+    results['OpenSees quad9n'] = dict(uy=uy_os_q9,
+                                      ratio=abs(uy_os_q9)/DELTA_EB*100, elapsed=dt)
+
 
 # ─────────────────────────────────────────────────────────────
 #  結果表示
@@ -168,10 +190,12 @@ grade_map = {
     "quad8 (Serendipity)":  "✓ 高精度",
     "OpenSees beam":        "✓ 梁理論 (基準)",
     "OpenSees quad":        "⚠⚠ ロッキング (quad4=24%)",
-    "OpenSees SSPquad":     "✓ 安定化1点積分 (ロッキングなし)",
-    "Kratos quad4":         "⚠⚠ ロッキング (quad4=24%)",
-    "Kratos quad":          "⚠⚠ ロッキング (quad4=24%)",
-    "Kratos Q8":            "✓ Q8 Serendipity (ロッキングなし)",
+    "OpenSees SSPquad":        "✓ 安定化1点積分 (103.1%)",
+    "OpenSees enhancedQuad":  "✓ EAS/Wilson Q6 相当 (ロッキングなし)",
+    "OpenSees quad9n":        "✓ 9節点 Lagrange 2次 (ロッキングなし)",
+    "Kratos quad4":           "⚠⚠ ロッキング (quad4=24%)",
+    "Kratos quad":            "⚠⚠ ロッキング (quad4=24%)",
+    "Kratos Q8":              "✓ Q8 Serendipity (ロッキングなし)",
 }
 
 for name, v in results.items():
