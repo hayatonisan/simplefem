@@ -1,0 +1,34 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.eggs/
+*.so
+*.pyd
+
+# results (動的生成ファイル)
+battle/results/*.txt
+battle/results/*.png
+battle/results/*.csv
+battle/opensees/results/
+battle/kratos/results/
+*.out
+*.log
+
+# Jupyter
+.ipynb_checkpoints/
+
+# IDEs
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# large binary PDFs (ローカルのみ)
+*.pdf
+
+# Excel (ローカルのみ)
+src_xls/
