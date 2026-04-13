@@ -25,6 +25,7 @@ Euler-Bernoulli 解析解: δ = PL³/(3EI) = **2.9762 mm**
 |------|-----------|---------|------|
 | tria3 (CST) | −0.2851 | **9.6%** | ⚠⚠ 強せん断ロッキング |
 | quad4 標準 | −0.7221 | **24.3%** | ⚠⚠ 強せん断ロッキング |
+| f90fem PLS_LIN (bilinear Q4) | −0.7221 | **24.3%** | ⚠⚠ ロッキング (quad4 相互検証) |
 | quad4 RI (1×1) | −3.1694 | **106.5%** | △ アワーグラス不安定 |
 | quad4 SRI (選択的低減積分) | −2.9715 | **99.8%** | ✓ ロッキング解消 |
 | quad4 IM (Wilson Q6) | −2.9715 | **99.8%** | ✓ ロッキング解消 |
@@ -41,8 +42,8 @@ Euler-Bernoulli 解析解: δ = PL³/(3EI) = **2.9762 mm**
 | Heki 日置解 (κ=1.0) | −2.9786 | 100.1% | 2D 弾性体厳密解 |
 
 > **相互検証ポイント:**
-> - `OpenSees quad` = `Kratos quad4` = `SIMPLEFEM quad4` → 同一値 −0.7221 (24.3%)  
->   → 3 つの全く異なるコードが同じ bilinear quad4 実装を内部検証
+> - `OpenSees quad` = `Kratos quad4` = `SIMPLEFEM quad4` = `f90fem PLS_LIN` → 同一値 −0.7221 (24.3%)  
+>   → **4 つの完全独立コード**が同じ bilinear quad4 実装を相互検証
 > - `OpenSees SSPquad` (103.1%) vs `SIMPLEFEM quad4 SRI` (99.8%):  
 >   どちらも 1 点積分系だがホワイトグラス安定化の有無で若干の差
 > - `OpenSees enhancedQuad` (99.8%) = `SIMPLEFEM quad4 SRI/IM` (99.8%):  
@@ -157,6 +158,7 @@ python battle/battle.py            # 旧バージョン (Docker 直接)
 | `battle/opensees/quad_ssp.py` | **SSPquad** 安定化1点積分 (ロッキングなし) |
 | `battle/opensees/quad_enhanced.py` | **enhancedQuad** EAS/Wilson Q6 相当 (99.8%) |
 | `battle/opensees/quad9n.py` | **quad9n** 9節点 Lagrange 2次 (100.0%) |
+| `battle/f90fem/cantilever_f90fem.py` | **f90fem PLS_LIN** bilinear Q4 (ロッキング相互検証) |
 | `battle/kratos/MainKratos.py` | SmallDisplacement2D4N (ロッキングあり) |
 | `battle/kratos/MainKratos_q8.py` | **SmallDisplacement2D8N** Q8 (ロッキングなし) |
 

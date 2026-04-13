@@ -18,6 +18,7 @@ SIMPLEFEM の全バリアントを Python 直接実行で比較する
   7. OpenSees elasticBeamColumn (梁理論, Docker)
   8. OpenSees quad PlaneStrain  (quad4 等価, Docker)
   9. Kratos SmallDisplacementElement2D4N (quad4 等価, Docker)
+ 10. f90fem PLS_LIN (bilinear Q4, Python 直接実行)
 """
 import sys, os, subprocess, time
 import numpy as np
@@ -67,6 +68,10 @@ from cantilever_quad4_im import cantilever_quad4_im
 from cantilever_quad8 import cantilever_quad8
 from analytical import eb_tip_deflection, timoshenko_tip_deflection, heki_tip_deflection
 
+# f90fem (05_f90fem/elements/pls_lin.py)
+F90FEM_PATH = os.path.join(BASE, '..', '..', '05_f90fem')
+sys.path.insert(0, os.path.abspath(F90FEM_PATH))
+
 # --- 解析解 ---
 delta_TM = timoshenko_tip_deflection(P, L, E, I, E/2, H*T, kappa=5.0/6.0)
 delta_HK = heki_tip_deflection(P, T, H, E/2, E, L)
@@ -87,6 +92,24 @@ for name, func, expect in _local_solvers:
     uy = tip_uy(U)
     ratio = abs(uy) / DELTA_EB * 100.0
     results[name] = dict(uy=uy, ratio=ratio, elapsed=elapsed)
+
+# f90fem PLS_LIN (bilinear Q4, Python 直接実行)
+try:
+    import importlib.util, subprocess as _sp
+    _f90fem_script = os.path.join(BASE, 'f90fem', 'cantilever_f90fem.py')
+    _spec = importlib.util.spec_from_file_location("cantilever_f90fem", _f90fem_script)
+    _mod  = importlib.util.module_from_spec(_spec)
+    # 独立スクリプトとして実行してファイル経由で結果取得
+    _t0 = time.perf_counter()
+    _proc = _sp.run(['python3', _f90fem_script], capture_output=True, text=True)
+    _dt = time.perf_counter() - _t0
+    _res_path = os.path.join(BASE, 'f90fem', 'results', 'f90fem_uy.txt')
+    _uy_f90 = float(open(_res_path).readline().strip()) if os.path.exists(_res_path) else None
+    if _uy_f90 is not None:
+        results['f90fem PLS_LIN'] = dict(uy=_uy_f90,
+                                         ratio=abs(_uy_f90)/DELTA_EB*100, elapsed=_dt)
+except Exception as e:
+    print(f"[WARN] f90fem skip: {e}")
 
 # ─────────────────────────────────────────────────────────────
 #  Docker 実行 (OpenSees / Kratos)
@@ -184,6 +207,7 @@ print("-" * 72)
 grade_map = {
     "tria3 (CST)":          "⚠⚠ 強ロッキング (9.6%)",
     "quad4 標準":            "⚠⚠ 強ロッキング (24.3%)",
+    "f90fem PLS_LIN":       "⚠⚠ 強ロッキング (24.3%) ← quad4 相互検証",
     "quad4 RI (1×1)":       "△ 過剰変形 (アワーグラス)",
     "quad4 SRI (選択的RI)":  "✓ ロッキング解消",
     "quad4 IM (Wilson Q6)": "✓ ロッキング解消",
