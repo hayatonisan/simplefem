@@ -118,16 +118,38 @@ if uy_os_q is not None:
     results['OpenSees quad'] = dict(uy=uy_os_q,
                                     ratio=abs(uy_os_q)/DELTA_EB*100, elapsed=dt)
 
-# Kratos quad
+# Kratos quad4
 r, dt = run_docker([
     'docker', 'run', '--rm',
     '-v', f'{KRAT}:/work/work',
     'solver-kratos:9.5', 'MainKratos.py',
-], 'Kratos quad', timeout=300)
+], 'Kratos quad4', timeout=300)
 uy_kr = parse_single(os.path.join(KRAT, 'results', 'kratos_uy.txt'))
 if uy_kr is not None:
-    results['Kratos quad'] = dict(uy=uy_kr,
-                                  ratio=abs(uy_kr)/DELTA_EB*100, elapsed=dt)
+    results['Kratos quad4'] = dict(uy=uy_kr,
+                                   ratio=abs(uy_kr)/DELTA_EB*100, elapsed=dt)
+
+# OpenSees SSPquad (安定化1点積分, ロッキングなし)
+r, dt = run_docker([
+    'docker', 'run', '--rm',
+    '-v', f'{OPSEE}:/work/work',
+    'solver-opensees:3.7.0', 'quad_ssp.py',
+], 'OpenSees SSPquad')
+uy_os_ssp = parse_single(os.path.join(OPSEE, 'results', 'quad_ssp_uy.txt'))
+if uy_os_ssp is not None:
+    results['OpenSees SSPquad'] = dict(uy=uy_os_ssp,
+                                       ratio=abs(uy_os_ssp)/DELTA_EB*100, elapsed=dt)
+
+# Kratos Q8 (SmallDisplacementElement2D8N, ロッキングなし)
+r, dt = run_docker([
+    'docker', 'run', '--rm',
+    '-v', f'{KRAT}:/work/work',
+    'solver-kratos:9.5', 'MainKratos_q8.py',
+], 'Kratos Q8', timeout=300)
+uy_kr_q8 = parse_single(os.path.join(KRAT, 'results', 'kratos_q8_uy.txt'))
+if uy_kr_q8 is not None:
+    results['Kratos Q8'] = dict(uy=uy_kr_q8,
+                                ratio=abs(uy_kr_q8)/DELTA_EB*100, elapsed=dt)
 
 
 # ─────────────────────────────────────────────────────────────
@@ -141,12 +163,15 @@ grade_map = {
     "tria3 (CST)":          "⚠⚠ 強ロッキング (9.6%)",
     "quad4 標準":            "⚠⚠ 強ロッキング (24.3%)",
     "quad4 RI (1×1)":       "△ 過剰変形 (アワーグラス)",
-    "quad4 SRI (選択的RI)":  "✓ 良好",
-    "quad4 IM (Wilson Q6)": "✓ 良好",
+    "quad4 SRI (選択的RI)":  "✓ ロッキング解消",
+    "quad4 IM (Wilson Q6)": "✓ ロッキング解消",
     "quad8 (Serendipity)":  "✓ 高精度",
     "OpenSees beam":        "✓ 梁理論 (基準)",
     "OpenSees quad":        "⚠⚠ ロッキング (quad4=24%)",
+    "OpenSees SSPquad":     "✓ 安定化1点積分 (ロッキングなし)",
+    "Kratos quad4":         "⚠⚠ ロッキング (quad4=24%)",
     "Kratos quad":          "⚠⚠ ロッキング (quad4=24%)",
+    "Kratos Q8":            "✓ Q8 Serendipity (ロッキングなし)",
 }
 
 for name, v in results.items():
