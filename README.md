@@ -19,37 +19,66 @@ Euler-Bernoulli 解析解: δ = PL³/(3EI) = **2.9762 mm**
 
 ---
 
-## バトル結果 (ロッキング対策完全比較)
+## バトル結果 (全要素完全比較)
 
+### SIMPLEFEM (自作 Python FEM)
 | 手法 | δ_tip [mm] | 比率 [%] | 評価 |
 |------|-----------|---------|------|
 | tria3 (CST) | −0.2851 | **9.6%** | ⚠⚠ 強せん断ロッキング |
 | quad4 標準 | −0.7221 | **24.3%** | ⚠⚠ 強せん断ロッキング |
-| f90fem PLS_LIN (bilinear Q4) | −0.7221 | **24.3%** | ⚠⚠ ロッキング (quad4 相互検証) |
 | quad4 RI (1×1) | −3.1694 | **106.5%** | △ アワーグラス不安定 |
 | quad4 SRI (選択的低減積分) | −2.9715 | **99.8%** | ✓ ロッキング解消 |
 | quad4 IM (Wilson Q6) | −2.9715 | **99.8%** | ✓ ロッキング解消 |
 | quad8 (Serendipity 2次) | −2.9764 | **100.0%** | ✓ 高精度 |
-| OpenSees elasticBeamColumn | −2.9762 | **100.0%** | ✓ 梁理論基準 |
-| OpenSees quad (PlaneStrain) | −0.7221 | **24.3%** | ⚠⚠ ロッキング (quad4 同等) |
-| **OpenSees SSPquad** | **−3.0673** | **103.1%** | ✓ 安定化1点積分 (ロッキング解消) |
-| **OpenSees enhancedQuad** | **−2.9715** | **99.8%** | ✓ EAS/Wilson Q6 相当 (高精度) |
-| **OpenSees quad9n** | **−2.9764** | **100.0%** | ✓ 9節点 Lagrange 2次 (最高精度) |
-| Kratos SmallDisplacement2D4N | −0.7221 | **24.3%** | ⚠⚠ ロッキング (quad4 同等) |
-| **Kratos SmallDisplacement2D8N** | **−2.9763** | **100.0%** | ✓ Q8 Serendipity (高精度) |
-| Euler-Bernoulli 解析解 | −2.9762 | **100.0%** | 理論値 |
-| Timoshenko (κ=5/6) | −2.9782 | 100.1% | せん断変形含む |
-| Heki 日置解 (κ=1.0) | −2.9786 | 100.1% | 2D 弾性体厳密解 |
+
+### f90fem (大坪英臣 Fortran90 FEM, Python 訳)
+| 手法 | δ_tip [mm] | 比率 [%] | 評価 |
+|------|-----------|---------|------|
+| PLS_LIN (bilinear Q4) | −0.7221 | **24.3%** | ⚠⚠ ロッキング — SIMPLEFEM quad4 相互検証 |
+
+### OpenSees (全 2D 要素)
+| 手法 | δ_tip [mm] | 比率 [%] | 評価 |
+|------|-----------|---------|------|
+| elasticBeamColumn | −2.9762 | **100.0%** | ✓ 梁理論基準 |
+| quad (bilinear Q4) | −0.7221 | **24.3%** | ⚠⚠ ロッキング |
+| bbarQuad (B-bar Q4) | −0.7258 | **24.4%** | ⚠⚠ ロッキング (B-bar はせん断ロッキング非対策) |
+| mixedQuad (混合定式 Q4) | −0.7258 | **24.4%** | ⚠⚠ ロッキング (混合もせん断ロッキング非対策) |
+| SSPquad (安定化1点積分) | −3.0673 | **103.1%** | ✓ ロッキング解消 (わずか過大) |
+| enhancedQuad (EAS) | −2.9715 | **99.8%** | ✓ ロッキング解消 |
+| tri31 (CST 三角形) | −0.2851 | **9.6%** | ⚠⚠ 強ロッキング |
+| quad8n (Serendipity Q8) | −2.9763 | **100.0%** | ✓ 高精度 |
+| quad9n (Lagrange Q9) | −2.9764 | **100.0%** | ✓ 高精度 |
+
+### Kratos StructuralMechanics (全 2D 要素)
+| 手法 | δ_tip [mm] | 比率 [%] | 評価 |
+|------|-----------|---------|------|
+| SmallDisplacement2D3N (CST) | −0.2851 | **9.6%** | ⚠⚠ 強ロッキング |
+| SmallDisplacement2D4N (bilinear Q4) | −0.7221 | **24.3%** | ⚠⚠ ロッキング |
+| SmallDisplacement2D6N (T6 二次三角形) | −2.9798 | **100.1%** | ✓ ロッキング解消 |
+| SmallDisplacement2D8N (Serendipity Q8) | −2.9763 | **100.0%** | ✓ 高精度 |
+| SmallDisplacement2D9N (Lagrange Q9) | −2.9764 | **100.0%** | ✓ 高精度 |
+| SmallDisplacement2D10N (T10 三次三角形) | −2.9926 | **100.6%** | ✓ ロッキング解消 (粗メッシュで過大) |
+| UpdatedLagrangian2D4N | −0.7221 | **24.3%** | ⚠⚠ Small2D4N と同値 (線形問題) |
+| UpdatedLagrangian2D8N | −2.9763 | **100.0%** | ✓ Small2D8N と同値 (線形問題) |
+| TotalLagrangian2D4N | −0.7221 | **24.3%** | ⚠⚠ Small2D4N と同値 (線形問題) |
+| TotalLagrangian2D8N | −2.9763 | **100.0%** | ✓ Small2D8N と同値 (線形問題) |
+
+### 解析解
+| 手法 | δ_tip [mm] | 比率 [%] |
+|------|-----------|---------|
+| Euler-Bernoulli | −2.9762 | **100.0%** |
+| Timoshenko (κ=5/6) | −2.9782 | 100.1% |
+| Heki 日置解 (κ=1.0) | −2.9786 | 100.1% |
 
 > **相互検証ポイント:**
-> - `OpenSees quad` = `Kratos quad4` = `SIMPLEFEM quad4` = `f90fem PLS_LIN` → 同一値 −0.7221 (24.3%)  
->   → **4 つの完全独立コード**が同じ bilinear quad4 実装を相互検証
-> - `OpenSees SSPquad` (103.1%) vs `SIMPLEFEM quad4 SRI` (99.8%):  
->   どちらも 1 点積分系だがホワイトグラス安定化の有無で若干の差
-> - `OpenSees enhancedQuad` (99.8%) = `SIMPLEFEM quad4 SRI/IM` (99.8%):  
->   EAS (Simo & Rifai 1990) ≡ 非適合モード (Wilson 1973) が同一精度を示す
-> - `OpenSees quad9n` (100.0%) = `Kratos Q8` = `SIMPLEFEM quad8` → 2次要素の相互検証
-> - `Kratos Q8` = `SIMPLEFEM quad8` → 同一値 100.0% (Serendipity Q8 相互検証)
+> - `OpenSees quad` = `Kratos 4N` = `SIMPLEFEM quad4` = `f90fem PLS_LIN` → 同一値 −0.7221 (24.3%)  
+>   → **4 つの完全独立コード**が同じ bilinear Q4 ロッキング挙動を相互検証
+> - `OpenSees bbarQuad` = `OpenSees mixedQuad` → 24.4% (B-bar・混合定式はせん断ロッキングに非効果)
+> - `OpenSees enhancedQuad` (99.8%) = `SIMPLEFEM SRI/IM` (99.8%): EAS ≡ 非適合モードが等価
+> - `OpenSees quad8n` = `Kratos 8N` = `SIMPLEFEM quad8` → 100.0% (Q8 三者一致)
+> - `OpenSees quad9n` = `Kratos 9N` → 100.0% (Q9 二者一致)
+> - `Kratos 3N` = `OpenSees tri31` = `SIMPLEFEM tria3` → 9.6% (CST 三者一致)
+> - `Kratos UL/TL` = `SmallDisplacement` → 小変位線形問題では定式化によらず同一結果
 
 ---
 
